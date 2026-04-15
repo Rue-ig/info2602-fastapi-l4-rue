@@ -1,6 +1,5 @@
 from sqlmodel import Field, SQLModel, Relationship
 from typing import Optional
-from pydantic import EmailStr   #insert at top of the file
 
 class Token(SQLModel):
     access_token: str
@@ -9,12 +8,12 @@ class Token(SQLModel):
 class UserResponse(SQLModel):
     id: Optional[int]
     username:str
-    email: EmailStr
+    email: str
 
 class User(SQLModel, table=False):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
-    email: str = Field(index=True, unique=True)
+    email: str
     password: str
     role:str = ""
 
@@ -37,6 +36,10 @@ class Category(SQLModel, table=True):
 
     todos:list['Todo'] = Relationship(back_populates="categories", link_model=TodoCategory)
 
+class CategoryCreate(SQLModel):
+    text: str
+
+
 class Todo(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, default=None)
     user_id: int = Field(foreign_key="regularuser.id")
@@ -51,9 +54,26 @@ class Todo(SQLModel, table=True):
     
     def get_cat_list(self):
         return ', '.join([category.text for category in self.categories])
+    
 
+class TodoCreate(SQLModel):
+    text:str
+
+class CategoryResponse(SQLModel):
+    id: int = Field(primary_key=True, default=None)
+    text:str
+
+class TodoResponse(SQLModel):
+    id: Optional[int] = Field(primary_key=True, default=None)
+    text:str
+    done: bool = False
+    categories: list[CategoryResponse]
+
+class TodoUpdate(SQLModel):
+    text: Optional[str] = None
+    done: Optional[bool] = None    
 
 class UserCreate(SQLModel):
     username:str
-    email: EmailStr = Field(max_length=255)
+    email: str
     password: str = Field(min_length=8, max_length=128)
